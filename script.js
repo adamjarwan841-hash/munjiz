@@ -69,6 +69,7 @@ async function getAllTasks() {
                 resolve(tasks);
             }
         };
+        request.onerror = () => resolve([]);
     });
 }
 
@@ -165,7 +166,6 @@ async function loadSettings() {
 }
 
 function setupEventListeners() {
-    // التنقل بين الصفحات
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.addEventListener('click', async () => {
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -182,7 +182,6 @@ function setupEventListeners() {
         });
     });
     
-    // المهام
     document.getElementById('selectedDate').addEventListener('change', async (e) => {
         await loadTasks(e.target.value);
     });
@@ -192,7 +191,6 @@ function setupEventListeners() {
         loadTasks(getTodayDate());
     });
     
-    // إضافة مهمة
     document.getElementById('openTaskModalBtn').addEventListener('click', () => {
         openModal('taskModal');
     });
@@ -257,7 +255,6 @@ function setupEventListeners() {
         showNotification('تم إضافة المهمة بسرعة!', 'success');
     });
     
-    // فلاتر المهام
     document.querySelectorAll('.filter-tab').forEach(btn => {
         btn.addEventListener('click', async () => {
             document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
@@ -267,7 +264,6 @@ function setupEventListeners() {
         });
     });
     
-    // فلاتر التحليلات
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -277,11 +273,9 @@ function setupEventListeners() {
         });
     });
     
-    // تصدير التقرير
     document.getElementById('exportReportBtn')?.addEventListener('click', exportReport);
     document.getElementById('exportChartBtn')?.addEventListener('click', exportChart);
     
-    // الإعدادات
     document.getElementById('saveUserName').addEventListener('click', async () => {
         const name = document.getElementById('userName').value;
         await saveSetting('userName', name);
@@ -316,7 +310,6 @@ function setupEventListeners() {
         await saveSetting('reminderTime', e.target.value);
     });
     
-    // تصدير واستيراد البيانات
     document.getElementById('exportDataBtn').addEventListener('click', exportData);
     document.getElementById('importDataBtn').addEventListener('click', () => {
         document.getElementById('importFile').click();
@@ -376,7 +369,6 @@ async function loadDashboard() {
     document.getElementById('totalCompleted').textContent = totalCompleted;
     document.getElementById('totalTasksDone').textContent = totalCompleted;
     
-    // حساب المستوى
     let level = 1;
     if (totalCompleted >= 100) level = 5;
     else if (totalCompleted >= 50) level = 4;
@@ -384,7 +376,6 @@ async function loadDashboard() {
     else if (totalCompleted >= 10) level = 2;
     document.getElementById('userLevel').textContent = level;
     
-    // حساب streak
     let streak = 0;
     let currentDate = new Date();
     for (let i = 0; i < 365; i++) {
@@ -397,7 +388,6 @@ async function loadDashboard() {
     }
     document.getElementById('streakCount').textContent = streak;
     
-    // الأهداف
     const dailyGoal = await getSetting('dailyGoal', 5);
     const weeklyGoal = await getSetting('weeklyGoal', 20);
     document.getElementById('dailyGoalTarget').textContent = dailyGoal;
@@ -417,7 +407,6 @@ async function loadDashboard() {
     document.getElementById('weeklyGoalProgress').style.width = `${weeklyPercent}%`;
     document.getElementById('weeklyGoalStatus').textContent = `${weeklyTotal}/${weeklyGoal} مكتملة`;
     
-    // الإنجازات
     const achievements = calculateAchievements(allTasks, streak, totalCompleted);
     document.getElementById('achievementsCount').textContent = achievements.length;
     const recentAchievements = achievements.slice(-3);
@@ -428,7 +417,6 @@ async function loadDashboard() {
         document.getElementById('recentAchievements').innerHTML = '<span style="color:var(--gray);">ابدأ بإنجاز مهامك أولاً 🚀</span>';
     }
     
-    // الرسم البياني
     if (weeklyChart) weeklyChart.destroy();
     const ctx = document.getElementById('weeklyChart').getContext('2d');
     weeklyChart = new Chart(ctx, {
@@ -588,7 +576,6 @@ async function loadAnalytics(filter) {
         options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
     });
     
-    // إحصائيات الفئات
     const categories = { عمل: 0, شخصي: 0, دراسة: 0, رياضة: 0, منزل: 0, تطوير: 0 };
     filteredTasks.forEach(t => { if (t.completed && categories[t.category] !== undefined) categories[t.category]++; });
     
@@ -608,7 +595,6 @@ async function loadAnalytics(filter) {
         options: { responsive: true, maintainAspectRatio: true }
     });
     
-    // اتجاه الإنتاجية
     const last7Days = getLast7Days();
     const trendData = [];
     for (let day of last7Days) {
@@ -635,7 +621,6 @@ async function loadAnalytics(filter) {
         options: { responsive: true, maintainAspectRatio: true }
     });
     
-    // توزيع الأولويات
     const priorities = { عالية: 0, متوسطة: 0, منخفضة: 0 };
     filteredTasks.forEach(t => { if (t.completed) priorities[t.priority]++; });
     
@@ -716,74 +701,143 @@ async function loadHistory() {
     `).join('');
 }
 
-// ==================== تحميل الإحصائيات المتقدمة ====================
+// ==================== تحميل الإحصائيات المتقدمة (نسخة مصححة) ====================
 async function loadStatistics() {
     const allTasks = await getAllTasks();
     
-    // أفضل يوم
+    // ========== 1. أكثر أيام إنتاجية ==========
     const dayStats = {};
+    const dayNames = {
+        'Sunday': 'الأحد',
+        'Monday': 'الإثنين',
+        'Tuesday': 'الثلاثاء',
+        'Wednesday': 'الأربعاء',
+        'Thursday': 'الخميس',
+        'Friday': 'الجمعة',
+        'Saturday': 'السبت'
+    };
+    
     allTasks.forEach(t => {
-        const day = new Date(t.date).toLocaleDateString('ar-EG', { weekday: 'long' });
-        if (t.completed) dayStats[day] = (dayStats[day] || 0) + 1;
+        if (t.completed && t.date) {
+            const dateObj = new Date(t.date);
+            if (!isNaN(dateObj.getTime())) {
+                const dayIndex = dateObj.getDay();
+                const dayName = Object.values(dayNames)[dayIndex];
+                dayStats[dayName] = (dayStats[dayName] || 0) + 1;
+            }
+        }
     });
-    const bestDayEntry = Object.entries(dayStats).sort((a,b) => b[1] - a[1])[0];
-    if (bestDayEntry) {
+    
+    const bestDayEntry = Object.entries(dayStats).sort((a, b) => b[1] - a[1])[0];
+    if (bestDayEntry && bestDayEntry[0] !== 'Invalid Date') {
         document.getElementById('bestDay').textContent = bestDayEntry[0];
         document.getElementById('bestDayCount').textContent = `${bestDayEntry[1]} مهمة`;
+    } else {
+        document.getElementById('bestDay').textContent = 'لا توجد بيانات';
+        document.getElementById('bestDayCount').textContent = '0 مهمة';
     }
     
-    // أفضل فئة
+    // ========== 2. أفضل فئة أداء ==========
     const categoryStats = {};
+    const categoryTotal = {};
+    
     allTasks.forEach(t => {
-        if (t.completed) categoryStats[t.category] = (categoryStats[t.category] || 0) + 1;
+        if (t.category) {
+            categoryTotal[t.category] = (categoryTotal[t.category] || 0) + 1;
+            if (t.completed) {
+                categoryStats[t.category] = (categoryStats[t.category] || 0) + 1;
+            }
+        }
     });
-    const bestCategory = Object.entries(categoryStats).sort((a,b) => b[1] - a[1])[0];
-    if (bestCategory) {
-        document.getElementById('bestCategory').textContent = bestCategory[0];
-        const total = allTasks.filter(t => t.category === bestCategory[0]).length;
-        const percent = total > 0 ? ((bestCategory[1] / total) * 100).toFixed(0) : 0;
-        document.getElementById('bestCategoryPercent').textContent = `${percent}%`;
+    
+    let bestCategory = null;
+    let bestPercent = 0;
+    for (const cat in categoryStats) {
+        const percent = categoryTotal[cat] > 0 ? (categoryStats[cat] / categoryTotal[cat]) * 100 : 0;
+        if (percent > bestPercent) {
+            bestPercent = percent;
+            bestCategory = cat;
+        }
     }
     
-    // متوسط المهام يومياً
-    const uniqueDays = [...new Set(allTasks.map(t => t.date))];
+    if (bestCategory) {
+        document.getElementById('bestCategory').textContent = bestCategory;
+        document.getElementById('bestCategoryPercent').textContent = `${Math.round(bestPercent)}%`;
+    } else {
+        document.getElementById('bestCategory').textContent = 'لا توجد بيانات';
+        document.getElementById('bestCategoryPercent').textContent = '0%';
+    }
+    
+    // ========== 3. متوسط المهام يومياً ==========
+    const uniqueDays = [...new Set(allTasks.map(t => t.date).filter(d => d))];
     const avgPerDay = uniqueDays.length > 0 ? (allTasks.length / uniqueDays.length).toFixed(1) : 0;
     document.getElementById('avgTasksPerDay').textContent = avgPerDay;
     
-    // أفضل سلسلة
-    let currentStreak = 0, bestStreak = 0;
-    let currentDate = new Date();
-    for (let i = 0; i < 365; i++) {
-        const dateStr = currentDate.toISOString().split('T')[0];
-        const hasCompletion = allTasks.some(t => t.date === dateStr && t.completed);
-        if (hasCompletion) currentStreak++;
-        else {
-            bestStreak = Math.max(bestStreak, currentStreak);
-            currentStreak = 0;
-        }
-        currentDate.setDate(currentDate.getDate() - 1);
-    }
-    document.getElementById('bestStreak').textContent = Math.max(bestStreak, currentStreak);
+    // ========== 4. أفضل سلسلة متتالية ==========
+    let currentStreak = 0;
+    let bestStreak = 0;
     
-    // خريطة النشاط
+    const completedDates = [...new Set(
+        allTasks.filter(t => t.completed && t.date)
+                .map(t => t.date)
+    )].sort();
+    
+    if (completedDates.length > 0) {
+        currentStreak = 1;
+        bestStreak = 1;
+        
+        for (let i = 1; i < completedDates.length; i++) {
+            const prevDate = new Date(completedDates[i - 1]);
+            const currDate = new Date(completedDates[i]);
+            const diffDays = Math.round((currDate - prevDate) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 1) {
+                currentStreak++;
+                bestStreak = Math.max(bestStreak, currentStreak);
+            } else {
+                currentStreak = 1;
+            }
+        }
+    }
+    
+    document.getElementById('bestStreak').textContent = bestStreak;
+    
+    // ========== 5. خريطة النشاط الشهرية ==========
     const last30Days = [];
     for (let i = 29; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
+        d.setHours(0, 0, 0, 0);
         last30Days.push(d.toISOString().split('T')[0]);
     }
     
     const heatmap = document.getElementById('activityHeatmap');
-    heatmap.innerHTML = last30Days.map(date => {
-        const dayTasks = allTasks.filter(t => t.date === date);
-        const completed = dayTasks.filter(t => t.completed).length;
-        let status = '';
-        if (completed > 0) status = 'completed';
-        else if (dayTasks.length > 0) status = 'partial';
-        return `<div class="heatmap-day ${status}" title="${date}: ${completed} مهام منجزة">${new Date(date).getDate()}</div>`;
-    }).join('');
+    if (heatmap) {
+        heatmap.innerHTML = last30Days.map(date => {
+            const dayTasks = allTasks.filter(t => t.date === date);
+            const completed = dayTasks.filter(t => t.completed).length;
+            const total = dayTasks.length;
+            
+            let status = '';
+            let titleText = `${date}: `;
+            
+            if (completed > 0) {
+                status = 'completed';
+                titleText += `${completed} مهام منجزة`;
+            } else if (total > 0) {
+                status = 'partial';
+                titleText += `${total} مهام (غير منجزة)`;
+            } else {
+                status = '';
+                titleText += 'لا توجد مهام';
+            }
+            
+            const dayNum = new Date(date).getDate();
+            return `<div class="heatmap-day ${status}" title="${titleText}">${dayNum}</div>`;
+        }).join('');
+    }
     
-    // نصائح
+    // ========== 6. نصائح ==========
     const tips = [
         '🎯 ابدأ يومك بأصعب مهمة (أكل الضفدع)',
         '⏰ استخدم تقنية بومودورو: 25 دقيقة عمل + 5 دقيقة راحة',
@@ -792,9 +846,15 @@ async function loadStatistics() {
         '🧘 خذ فترات راحة قصيرة كل ساعة',
         '🎉 كافئ نفسك عند إنجاز المهام الكبيرة',
         '📊 راجع تقدمك أسبوعياً لتحديد نقاط القوة والضعف',
-        '🌙 نم جيداً فالنوم الجيد يزيد الإنتاجية'
+        '🌙 نم جيداً فالنوم الجيد يزيد الإنتاجية',
+        '📈 قسم المهام الكبيرة إلى مهام صغيرة',
+        '✍️ دوّن إنجازاتك يومياً لتحفيز نفسك'
     ];
-    document.getElementById('tipsList').innerHTML = tips.map(tip => `<li>${tip}</li>`).join('');
+    
+    const tipsList = document.getElementById('tipsList');
+    if (tipsList) {
+        tipsList.innerHTML = tips.map(tip => `<li>${tip}</li>`).join('');
+    }
 }
 
 // ==================== دوال مساعدة ====================
@@ -976,8 +1036,6 @@ async function checkNotifications() {
     if (enabled && 'Notification' in window && Notification.permission === 'granted') {
         const now = new Date();
         const [hours, minutes] = reminderTime.split(':');
-        const reminder = new Date();
-        reminder.setHours(parseInt(hours), parseInt(minutes), 0);
         if (now.getHours() === parseInt(hours) && now.getMinutes() === parseInt(minutes)) {
             const tasksToday = await getTasksByDate(getTodayDate());
             const pending = tasksToday.filter(t => !t.completed).length;
@@ -993,7 +1051,6 @@ async function checkNotifications() {
 
 setInterval(checkNotifications, 60000);
 
-// إضافة حركة انزلاق للإشعارات
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
