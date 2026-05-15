@@ -122,6 +122,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(updateClock, 1000);
     
     setupEventListeners();
+    setupCategoryHint();
+    setupWelcomeModal();
+    showWelcomeModalIfNeeded();
     checkNotifications();
 });
 
@@ -135,9 +138,13 @@ function updateClock() {
 }
 
 async function loadSettings() {
-    const userName = await getSetting('userName', 'المستخدم');
-    document.getElementById('userName').value = userName;
-    document.getElementById('userNameDisplay').textContent = userName;
+    const userName = await getSetting('userName', '');
+    if (userName) {
+        document.getElementById('userName').value = userName;
+        document.getElementById('userNameDisplay').textContent = userName;
+    } else {
+        document.getElementById('userNameDisplay').textContent = 'المستخدم';
+    }
     
     const dailyGoal = await getSetting('dailyGoal', 5);
     document.getElementById('dailyGoalSetting').value = dailyGoal;
@@ -204,6 +211,7 @@ function setupEventListeners() {
             closeModal('taskModal');
             closeModal('quickAddModal');
             closeModal('confirmModal');
+            closeModal('welcomeModal');
         });
     });
     
@@ -340,6 +348,7 @@ function setupEventListeners() {
             closeModal('taskModal');
             closeModal('quickAddModal');
             closeModal('confirmModal');
+            closeModal('welcomeModal');
         }
     };
 }
@@ -456,7 +465,7 @@ function calculateAchievements(tasks, streak, totalCompleted) {
     const dailyGoal = 5;
     if (tasksToday >= dailyGoal) achievements.push('حققت هدف اليوم 🎯');
     
-    const categories = ['عمل', 'شخصي', 'دراسة', 'رياضة'];
+    const categories = ['عمل', 'شخصي', 'دراسة', 'رياضة', 'ترفيه'];
     for (let cat of categories) {
         const catCompleted = tasks.filter(t => t.category === cat && t.completed).length;
         if (catCompleted >= 20) achievements.push(`خبير في ${cat} 💼`);
@@ -576,7 +585,7 @@ async function loadAnalytics(filter) {
         options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
     });
     
-    const categories = { عمل: 0, شخصي: 0, دراسة: 0, رياضة: 0, منزل: 0, تطوير: 0 };
+    const categories = { عمل: 0, شخصي: 0, دراسة: 0, رياضة: 0, منزل: 0, تطوير: 0, ترفيه: 0 };
     filteredTasks.forEach(t => { if (t.completed && categories[t.category] !== undefined) categories[t.category]++; });
     
     if (categoryChart) categoryChart.destroy();
@@ -701,11 +710,10 @@ async function loadHistory() {
     `).join('');
 }
 
-// ==================== تحميل الإحصائيات المتقدمة (نسخة مصححة) ====================
+// ==================== تحميل الإحصائيات المتقدمة ====================
 async function loadStatistics() {
     const allTasks = await getAllTasks();
     
-    // ========== 1. أكثر أيام إنتاجية ==========
     const dayStats = {};
     const dayNames = {
         'Sunday': 'الأحد',
@@ -737,7 +745,6 @@ async function loadStatistics() {
         document.getElementById('bestDayCount').textContent = '0 مهمة';
     }
     
-    // ========== 2. أفضل فئة أداء ==========
     const categoryStats = {};
     const categoryTotal = {};
     
@@ -768,12 +775,10 @@ async function loadStatistics() {
         document.getElementById('bestCategoryPercent').textContent = '0%';
     }
     
-    // ========== 3. متوسط المهام يومياً ==========
     const uniqueDays = [...new Set(allTasks.map(t => t.date).filter(d => d))];
     const avgPerDay = uniqueDays.length > 0 ? (allTasks.length / uniqueDays.length).toFixed(1) : 0;
     document.getElementById('avgTasksPerDay').textContent = avgPerDay;
     
-    // ========== 4. أفضل سلسلة متتالية ==========
     let currentStreak = 0;
     let bestStreak = 0;
     
@@ -802,7 +807,6 @@ async function loadStatistics() {
     
     document.getElementById('bestStreak').textContent = bestStreak;
     
-    // ========== 5. خريطة النشاط الشهرية ==========
     const last30Days = [];
     for (let i = 29; i >= 0; i--) {
         const d = new Date();
@@ -837,7 +841,6 @@ async function loadStatistics() {
         }).join('');
     }
     
-    // ========== 6. نصائح ==========
     const tips = [
         '🎯 ابدأ يومك بأصعب مهمة (أكل الضفدع)',
         '⏰ استخدم تقنية بومودورو: 25 دقيقة عمل + 5 دقيقة راحة',
@@ -1047,6 +1050,67 @@ async function checkNotifications() {
             }
         }
     }
+}
+
+// ==================== دوال جديدة ====================
+
+function setupCategoryHint() {
+    const categorySelect = document.getElementById('taskCategory');
+    const hintDiv = document.getElementById('categoryHint');
+    
+    const categoryDescriptions = {
+        'عمل': '💼 المهام المهنية والوظيفية (اجتماع، تقرير، بريد إلكتروني)',
+        'شخصي': '🧘 المهام الشخصية اليومية (زيارة عائلة، هوايات، استرخاء)',
+        'دراسة': '📚 المهام التعليمية (مراجعة دروس، واجبات، بحث)',
+        'رياضة': '🏃 النشاطات الرياضية (تمارين، جري، يوغا)',
+        'منزل': '🏠 المهام المنزلية (تنظيف، طبخ، ترتيب)',
+        'تطوير': '📈 تطوير الذات والمهارات (قراءة، دورات، تعلم لغة)',
+        'ترفيه': '🎮 الأنشطة الترفيهية (لعب، أفلام، ألعاب فيديو، خروج مع الأصدقاء)'
+    };
+    
+    categorySelect.addEventListener('change', () => {
+        const selected = categorySelect.value;
+        hintDiv.innerHTML = `💡 ${categoryDescriptions[selected] || 'اختر الفئة المناسبة لمهمتك'}`;
+        hintDiv.style.color = 'var(--primary)';
+        hintDiv.style.fontWeight = '500';
+    });
+    
+    const defaultCategory = categorySelect.value;
+    hintDiv.innerHTML = `💡 ${categoryDescriptions[defaultCategory] || 'اختر الفئة المناسبة لمهمتك'}`;
+}
+
+function showWelcomeModalIfNeeded() {
+    const hasName = localStorage.getItem('welcomeShown');
+    if (!hasName) {
+        setTimeout(() => {
+            openModal('welcomeModal');
+        }, 500);
+    }
+}
+
+function setupWelcomeModal() {
+    document.getElementById('welcomeStartBtn').addEventListener('click', async () => {
+        const name = document.getElementById('welcomeNameInput').value.trim();
+        if (name) {
+            await saveSetting('userName', name);
+            document.getElementById('userNameDisplay').textContent = name;
+            document.getElementById('userName').value = name;
+            localStorage.setItem('welcomeShown', 'true');
+            closeModal('welcomeModal');
+            showNotification(`مرحباً ${name}! أتمنى لك يوماً منتجاً 🎉`, 'success');
+        } else {
+            showNotification('الرجاء إدخال اسمك أولاً', 'warning');
+        }
+    });
+    
+    window.addEventListener('click', (event) => {
+        if (event.target === document.getElementById('welcomeModal')) {
+            const name = document.getElementById('welcomeNameInput').value.trim();
+            if (name) {
+                document.getElementById('welcomeStartBtn').click();
+            }
+        }
+    });
 }
 
 setInterval(checkNotifications, 60000);
