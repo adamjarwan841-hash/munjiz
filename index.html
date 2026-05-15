@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>مُنجِز | Munjiz - منصة الإنتاجية الذكية</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- الشريط الجانبي -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Munjiz Logo">
+                </div>
+                <div class="logo-text">
+                    <span class="logo-ar">مُنجِز</span>
+                    <span class="logo-en">MUNJIZ</span>
+                </div>
+            </div>
+            
+            <nav class="main-nav">
+                <button class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>الرئيسية</span>
+                </button>
+                <button class="nav-item" data-page="tasks">
+                    <i class="fas fa-list-check"></i>
+                    <span>المهام</span>
+                </button>
+                <button class="nav-item" data-page="analytics">
+                    <i class="fas fa-chart-line"></i>
+                    <span>التحليلات</span>
+                </button>
+                <button class="nav-item" data-page="history">
+                    <i class="fas fa-calendar-week"></i>
+                    <span>السجل</span>
+                </button>
+                <button class="nav-item" data-page="statistics">
+                    <i class="fas fa-chart-simple"></i>
+                    <span>الإحصائيات</span>
+                </button>
+                <button class="nav-item" data-page="settings">
+                    <i class="fas fa-gear"></i>
+                    <span>الإعدادات</span>
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="streak-box">
+                    <i class="fas fa-fire-flame"></i>
+                    <div>
+                        <h4 id="streakCount">0</h4>
+                        <p>أيام متتالية</p>
+                    </div>
+                </div>
+                <div class="level-box">
+                    <i class="fas fa-star"></i>
+                    <div>
+                        <h4 id="userLevel">1</h4>
+                        <p>المستوى</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="main-area">
+            <!-- صفحة لوحة التحكم -->
+            <div id="dashboardPage" class="page active">
+                <div class="welcome-card">
+                    <div>
+                        <h1>مرحباً <span id="userNameDisplay">المستخدم</span>! 👋</h1>
+                        <p>يوم جديد، فرصة جديدة للإنجاز</p>
+                    </div>
+                    <div class="time-display">
+                        <i class="fas fa-clock"></i>
+                        <span id="currentTime"></span>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <i class="fas fa-tasks"></i>
+                        <h3 id="todayTasksCount">0</h3>
+                        <p>مهام اليوم</p>
+                    </div>
+                    <div class="stat-box">
+                        <i class="fas fa-check-circle"></i>
+                        <h3 id="todayCompletedCount">0</h3>
+                        <p>منجزة اليوم</p>
+                    </div>
+                    <div class="stat-box">
+                        <i class="fas fa-chart-line"></i>
+                        <h3 id="weeklyProgress">0%</h3>
+                        <p>نسبة الأسبوع</p>
+                    </div>
+                    <div class="stat-box">
+                        <i class="fas fa-award"></i>
+                        <h3 id="totalCompleted">0</h3>
+                        <p>إنجاز إجمالي</p>
+                    </div>
+                    <div class="stat-box">
+                        <i class="fas fa-trophy"></i>
+                        <h3 id="achievementsCount">0</h3>
+                        <p>إنجازات محققة</p>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> أداء آخر 7 أيام</h3>
+                            <button id="exportChartBtn" class="icon-btn"><i class="fas fa-download"></i></button>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="weeklyChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="goals-card">
+                        <h3><i class="fas fa-bullseye"></i> أهداف اليوم</h3>
+                        <div class="daily-goal">
+                            <div class="goal-header">
+                                <span>هدف اليوم</span>
+                                <span id="dailyGoalTarget">5</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div id="dailyGoalProgress" class="progress-fill"></div>
+                            </div>
+                            <span id="dailyGoalStatus">0/5 مكتملة</span>
+                        </div>
+                        <div class="weekly-goal">
+                            <div class="goal-header">
+                                <span>هدف الأسبوع</span>
+                                <span id="weeklyGoalTarget">20</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div id="weeklyGoalProgress" class="progress-fill"></div>
+                            </div>
+                            <span id="weeklyGoalStatus">0/20 مكتملة</span>
+                        </div>
+                    </div>
+                    
+                    <div class="achievements-card">
+                        <h3><i class="fas fa-medal"></i> الإنجازات الأخيرة</h3>
+                        <div id="recentAchievements" class="achievements-list"></div>
+                    </div>
+                    
+                    <div class="quote-card">
+                        <i class="fas fa-quote-right"></i>
+                        <p id="motivationText">"النجاح ليس غياب الفشل، بل الإصرار على تجاوزه"</p>
+                        <button id="newQuoteBtn" class="btn-small"><i class="fas fa-sync"></i> اقتباس جديد</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صفحة المهام -->
+            <div id="tasksPage" class="page">
+                <div class="page-header">
+                    <h2><i class="fas fa-list-check"></i> المهام اليومية</h2>
+                    <div class="header-actions">
+                        <button id="quickAddTaskBtn" class="btn-outline"><i class="fas fa-bolt"></i> سريع</button>
+                        <button id="openTaskModalBtn" class="btn-main"><i class="fas fa-plus"></i> مهمة جديدة</button>
+                    </div>
+                </div>
+                
+                <div class="date-picker">
+                    <i class="fas fa-calendar"></i>
+                    <input type="date" id="selectedDate" class="date-input">
+                    <button id="todayBtn" class="btn-small">اليوم</button>
+                </div>
+                
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-task-filter="all">الكل</button>
+                    <button class="filter-tab" data-task-filter="pending">غير مكتملة</button>
+                    <button class="filter-tab" data-task-filter="completed">مكتملة</button>
+                    <button class="filter-tab" data-task-filter="high">عالية الأولوية</button>
+                </div>
+                
+                <div id="tasksContainer" class="tasks-container"></div>
+            </div>
+
+            <!-- صفحة التحليلات -->
+            <div id="analyticsPage" class="page">
+                <h2><i class="fas fa-chart-pie"></i> التحليلات والتقارير</h2>
+                
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="week">أسبوعي</button>
+                    <button class="filter-btn" data-filter="month">شهري</button>
+                    <button class="filter-btn" data-filter="year">سنوي</button>
+                    <button class="filter-btn" data-filter="all">كل الوقت</button>
+                </div>
+                
+                <div class="charts-row">
+                    <div class="chart-box">
+                        <h3>نسبة الإنجاز</h3>
+                        <canvas id="completionChart"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h3>الإنجازات حسب الفئة</h3>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="charts-row">
+                    <div class="chart-box">
+                        <h3>اتجاه الإنتاجية</h3>
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h3>توزيع الأولويات</h3>
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="insights-card">
+                    <h3><i class="fas fa-brain"></i> رؤى وتحليلات ذكية</h3>
+                    <div id="insightsContent"></div>
+                </div>
+                
+                <button id="exportReportBtn" class="btn-main"><i class="fas fa-file-pdf"></i> تصدير التقرير</button>
+            </div>
+
+            <!-- صفحة السجل -->
+            <div id="historyPage" class="page">
+                <h2><i class="fas fa-clock"></i> سجل الإنجازات الكامل</h2>
+                <div class="history-controls">
+                    <input type="text" id="historySearch" placeholder="🔍 بحث في المهام..." class="search-input">
+                    <select id="historyFilter" class="filter-select">
+                        <option value="all">كل المهام</option>
+                        <option value="completed">المنجزة فقط</option>
+                        <option value="pending">غير المنجزة</option>
+                    </select>
+                </div>
+                <div id="historyList" class="history-list"></div>
+            </div>
+
+            <!-- صفحة الإحصائيات المتقدمة -->
+            <div id="statisticsPage" class="page">
+                <h2><i class="fas fa-chart-simple"></i> إحصائيات متقدمة</h2>
+                
+                <div class="stats-cards">
+                    <div class="stat-card-large">
+                        <h4>أكثر أيام إنتاجية</h4>
+                        <p id="bestDay">الجمعة</p>
+                        <small id="bestDayCount">0 مهمة</small>
+                    </div>
+                    <div class="stat-card-large">
+                        <h4>أفضل فئة أداء</h4>
+                        <p id="bestCategory">عمل</p>
+                        <small id="bestCategoryPercent">0%</small>
+                    </div>
+                    <div class="stat-card-large">
+                        <h4>متوسط المهام يومياً</h4>
+                        <p id="avgTasksPerDay">0</p>
+                        <small>مهمة في اليوم</small>
+                    </div>
+                    <div class="stat-card-large">
+                        <h4>أفضل سلسلة متتالية</h4>
+                        <p id="bestStreak">0</p>
+                        <small>يوم</small>
+                    </div>
+                </div>
+                
+                <div class="heatmap-container">
+                    <h3>خريطة النشاط الشهرية</h3>
+                    <div id="activityHeatmap" class="heatmap"></div>
+                </div>
+                
+                <div class="productivity-tips">
+                    <h3><i class="fas fa-lightbulb"></i> نصائح لتحسين الإنتاجية</h3>
+                    <ul id="tipsList"></ul>
+                </div>
+            </div>
+
+            <!-- صفحة الإعدادات (بدون خيارات المظهر) -->
+            <div id="settingsPage" class="page">
+                <h2><i class="fas fa-gear"></i> الإعدادات والتخصيص</h2>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-user"></i> الملف الشخصي</h3>
+                    <div class="setting-group">
+                        <label>اسم المستخدم</label>
+                        <input type="text" id="userName" placeholder="أدخل اسمك" class="setting-input">
+                        <button id="saveUserName" class="btn-small">حفظ</button>
+                    </div>
+                    <div class="setting-group">
+                        <label>الصورة الرمزية</label>
+                        <div class="avatar-selector">
+                            <div class="avatar-option selected" data-avatar="😀">😀</div>
+                            <div class="avatar-option" data-avatar="😎">😎</div>
+                            <div class="avatar-option" data-avatar="🚀">🚀</div>
+                            <div class="avatar-option" data-avatar="🏆">🏆</div>
+                            <div class="avatar-option" data-avatar="💪">💪</div>
+                            <div class="avatar-option" data-avatar="🧠">🧠</div>
+                            <div class="avatar-option" data-avatar="⭐">⭐</div>
+                            <div class="avatar-option" data-avatar="🎯">🎯</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-bullseye"></i> الأهداف اليومية والأسبوعية</h3>
+                    <div class="setting-group">
+                        <label>هدف المهام اليومي</label>
+                        <input type="number" id="dailyGoalSetting" min="1" max="20" value="5" class="setting-input">
+                    </div>
+                    <div class="setting-group">
+                        <label>هدف المهام الأسبوعي</label>
+                        <input type="number" id="weeklyGoalSetting" min="5" max="100" value="20" class="setting-input">
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-bell"></i> الإشعارات</h3>
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="notificationsEnabled"> تفعيل الإشعارات
+                        </label>
+                    </div>
+                    <div class="setting-group">
+                        <label>تذكير يومي في</label>
+                        <input type="time" id="reminderTime" value="09:00" class="setting-input">
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-database"></i> البيانات</h3>
+                    <div class="setting-group">
+                        <button id="exportDataBtn" class="btn-outline"><i class="fas fa-download"></i> تصدير البيانات</button>
+                        <button id="importDataBtn" class="btn-outline"><i class="fas fa-upload"></i> استيراد البيانات</button>
+                        <input type="file" id="importFile" accept=".json" style="display:none">
+                    </div>
+                    <div class="setting-group">
+                        <button id="resetDataBtn" class="btn-danger"><i class="fas fa-trash"></i> إعادة تعيين جميع البيانات</button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-info-circle"></i> معلومات التطبيق</h3>
+                    <p><strong>مُنجِز | MUNJIZ</strong> - منصة الإنتاجية الذكية</p>
+                    <p>الإصدار: <strong>2.0.0</strong></p>
+                    <p>إجمالي المهام المنجزة: <span id="totalTasksDone">0</span></p>
+                    <p>تاريخ الانضمام: <span id="joinDate"></span></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- نافذة إضافة مهمة -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3><i class="fas fa-plus-circle"></i> مهمة جديدة</h3>
+            <input type="text" id="taskTitle" placeholder="عنوان المهمة" class="modal-input">
+            <textarea id="taskDescription" placeholder="وصف المهمة (اختياري)" rows="3" class="modal-input"></textarea>
+            <select id="taskCategory" class="modal-input">
+                <option value="عمل">💼 عمل</option>
+                <option value="شخصي">🧘 شخصي</option>
+                <option value="دراسة">📚 دراسة</option>
+                <option value="رياضة">🏃 رياضة</option>
+                <option value="منزل">🏠 منزل</option>
+                <option value="تطوير">📈 تطوير</option>
+            </select>
+            <select id="taskPriority" class="modal-input">
+                <option value="عالية">🔴 عالية</option>
+                <option value="متوسطة">🟡 متوسطة</option>
+                <option value="منخفضة">🟢 منخفضة</option>
+            </select>
+            <input type="datetime-local" id="taskDueDate" class="modal-input">
+            <button id="saveTaskBtn" class="btn-main">💾 حفظ المهمة</button>
+        </div>
+    </div>
+    
+    <!-- نافذة إضافة سريعة -->
+    <div id="quickAddModal" class="modal">
+        <div class="modal-content modal-small">
+            <span class="close-quick-modal">&times;</span>
+            <h3><i class="fas fa-bolt"></i> إضافة سريعة</h3>
+            <input type="text" id="quickTaskTitle" placeholder="عنوان المهمة" class="modal-input">
+            <button id="quickSaveBtn" class="btn-main">إضافة</button>
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content modal-small">
+            <h3><i class="fas fa-exclamation-triangle"></i> تأكيد</h3>
+            <p id="confirmMessage">هل أنت متأكد؟</p>
+            <div class="confirm-buttons">
+                <button id="confirmYesBtn" class="btn-danger">نعم</button>
+                <button id="confirmNoBtn" class="btn-outline">لا</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
