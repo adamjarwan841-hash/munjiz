@@ -361,15 +361,15 @@
             <input type="text" id="taskTitle" placeholder="عنوان المهمة" class="modal-input">
             <textarea id="taskDescription" placeholder="وصف المهمة (اختياري)" rows="3" class="modal-input"></textarea>
             <select id="taskCategory" class="modal-input">
-    <option value="عمل">💼 عمل</option>
-    <option value="شخصي">🧘 شخصي</option>
-    <option value="دراسة">📚 دراسة</option>
-    <option value="رياضة">🏃 رياضة</option>
-    <option value="منزل">🏠 منزل</option>
-    <option value="تطوير">📈 تطوير ذاتي</option>
-    <option value="ترفيه">🎮 ترفيه</option>
-</select>
-<div id="categoryHint" class="category-hint">💡 اختر الفئة المناسبة لمهمتك</div>
+                <option value="عمل">💼 عمل</option>
+                <option value="شخصي">🧘 شخصي</option>
+                <option value="دراسة">📚 دراسة</option>
+                <option value="رياضة">🏃 رياضة</option>
+                <option value="منزل">🏠 منزل</option>
+                <option value="تطوير">📈 تطوير ذاتي</option>
+                <option value="ترفيه">🎮 ترفيه</option>
+            </select>
+            <div id="categoryHint" class="category-hint">💡 اختر الفئة المناسبة لمهمتك</div>
             <select id="taskPriority" class="modal-input">
                 <option value="عالية">🔴 عالية</option>
                 <option value="متوسطة">🟡 متوسطة</option>
@@ -399,6 +399,16 @@
                 <button id="confirmYesBtn" class="btn-danger">نعم</button>
                 <button id="confirmNoBtn" class="btn-outline">لا</button>
             </div>
+        </div>
+    </div>
+
+    <!-- نافذة الترحيب لاختيار الاسم -->
+    <div id="welcomeModal" class="modal">
+        <div class="modal-content welcome-modal">
+            <h3>👋 مرحباً بك في <span style="color:var(--primary)">مُنجِز</span></h3>
+            <p>يسعدنا انضمامك إلينا! 🎉<br>كيف تريد أن نناديك؟</p>
+            <input type="text" id="welcomeNameInput" placeholder="أدخل اسمك..." class="welcome-input" autocomplete="off">
+            <button id="welcomeStartBtn" class="btn-main">🚀 ابدأ الرحلة</button>
         </div>
     </div>
 
